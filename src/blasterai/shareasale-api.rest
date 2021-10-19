@@ -1,0 +1,4 @@
+:url = https://api.shareasale.com/w.cfm
+
+GET :url
+
