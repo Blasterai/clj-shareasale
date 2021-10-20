@@ -24,6 +24,7 @@ params to the request.
                   :merchant-id 12345})
 (def client (make-client credentials))
 
+(client :bannerList)
 (client :transactiondetail :format "csv" :datestart "10/01/2021")
 ```
 
