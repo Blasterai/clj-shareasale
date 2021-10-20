@@ -1,6 +1,6 @@
 # clj-shareasale
 
-Clojure client for Shareasale API.
+Clojure client for Shareasale Merchant API.
 
 ## Install
 
