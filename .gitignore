@@ -23,6 +23,8 @@
 *.swp
 *~
 *#
+*.*#
+#*
 /checkouts
 /classes
 /target

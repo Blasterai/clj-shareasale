@@ -3,9 +3,9 @@
             [clj-http.client :as client]
             [clojure.string :as str]))
 
-(def url "https://shareasale.com/w.cfm")
+(def ^:private url "https://shareasale.com/w.cfm")
 
-(defn title-case 
+(defn- title-case 
   "Converts any strING to String"
   [s]
   (let [f (first s)
@@ -13,7 +13,7 @@
     (-> [(str/upper-case f) (str/lower-case r)]
         (str/join))))
 
-(defn instant-breakdown
+(defn- instant-breakdown
   "Takes an instant of time and breaks it down into units."
   [t]
   {:day  (t/day-of-week t)
@@ -27,32 +27,18 @@
    :HH (t/hour t)
    :ss (t/second t)})
 
-(defn timestamp []
+(defn- timestamp []
   (let [now (instant-breakdown (t/in (t/now) "UTC"))]
     (-> [(:a now) ", " (:dd now) " " (:b now) " " (:yyyy now) " " (:HH now) ":" (:MM now) ":" (:ss now) " +0000"]
         (str/join))))
 
-;; timestamp format: 'Tue, 19 Oct 2021 16:22:14 +0000'
-;; 'merchantId=89352&token=UFy4yd9g1NGsmv3t&version=3.0&action=bannerList'
-(defn request-params
-  "Genreate request params string"
-  [{:keys [merchant-id api-token api-version action-verb]}]
-  {:pre [(some? merchant-id) (some? api-token) (some? action-verb)]}
-  (let [api-version (or api-version "3.0")]
-    (-> ["merchantId=" merchant-id
-         "&token=" api-token
-         "&version=" api-version
-         "&action=" action-verb]
-        (str/join)))
-  )
-
-(defn hexify [digest]
+(defn- hexify [digest]
   (apply str (map #(format "%02x" (bit-and % 0xff)) digest)))
 
-(defn sha256digest [b]
+(defn- sha256digest [b]
   (.digest (java.security.MessageDigest/getInstance "SHA-256") b))
 
-(defn signature
+(defn- sign
   [{:keys [api-token ts action-verb api-secret]}]
   {:pre [(some? api-token) (some? action-verb) (some? api-secret)]}
   (let [tstamp (or ts (timestamp))
@@ -60,21 +46,54 @@
                  (str/join ":"))]
     (-> (.getBytes sig "UTF-8")
         sha256digest
-        hexify))
-  )
+        hexify)))
 
-(defn request-data [{:keys [api-token ts action-verb api-secret] :as data}]
+(defn- prepare-headers [{:keys [api-token ts action-verb api-secret api-version] :as data}]
   (let [tstamp (or ts (timestamp))
-        new-data (assoc data :ts tstamp)]
-    {:params (request-params new-data)
-     :headers
-     {:x-ShareASale-Date (or ts (timestamp))
-      :x-ShareASale-Authentication (signature new-data)}}))
+        api-version (or api-version "3.0")
+        new-data (assoc data :ts tstamp :api-version api-version)]
+    {:x-ShareASale-Date tstamp
+     :x-ShareASale-Authentication (sign new-data)}))
 
-(defn request [credentials action-verb]
-  (let [data (request-data (assoc credentials :action-verb action-verb))]
-    (-> (client/get (str url "?" (:params data)) {:headers (:headers data)})
-        :body)))
+(defn- prepare-params
+  [{:keys [merchant-id api-token api-secret action-verb] :as credentials} & query-params]
+  (println query-params)
+  (-> {:merchantId merchant-id
+       :token api-token
+       :version (or (:api-version query-params) "3.0")
+       :action action-verb}
+      (merge (or (first query-params) {}))
+      (dissoc :api-version :action-verb)))
 
+(defn- request [credentials action-verb &{:keys [] :as params}]
+  (let [verb (name action-verb)]
+    (println ::request :params params)
+    (let [new-params (prepare-params (assoc credentials :action-verb verb) params)]
+      (println ::request :new-params new-params)
+      (-> (client/get url {:query-params new-params
+                           :headers (prepare-headers (assoc credentials :action-verb verb))})
+          :body))))
+
+(defn make-client
+  "Makes a client function used to execute action verbs. Resulting function can be run like this:
+
+  (client :bannerList)
+  (client :transactiondetail :format \"csv\" :datestart \"10/15/2021\")
+
+  First argument is the action word for Shareasale API.
+  The rest are optional query params. "
+  [{:keys [api-token api-secret] :as credentials}]
+  {:pre [(some? api-token) (some? api-secret)]}
+  (partial request credentials))
+
+;; Example
+(comment
+  (def credentials {:api-token "token"
+                    :api-secret "secret"
+                    :merchant-id 12345})
+  (def client (make-client credentials))
+  (client :transactiondetail :format "csv" :datestart "10/01/2021")
+  (->> (client :transactiondetail :format "csv" :datestart "10/01/2021")
+       (spit "response.csv")))
 
 

@@ -1,10 +1,11 @@
 # clj-shareasale
 
-FIXME: my new library.
+Clojure client for Shareasale API.
 
 ## Usage
 
-FIXME: write usage documentation!
+FIXME: Write up usage docs
+
 
 Invoke a library API function from the command-line:
 
