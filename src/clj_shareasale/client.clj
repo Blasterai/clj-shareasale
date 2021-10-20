@@ -57,7 +57,6 @@
 
 (defn- prepare-params
   [{:keys [merchant-id api-token api-secret action-verb] :as credentials} & query-params]
-  (println query-params)
   (-> {:merchantId merchant-id
        :token api-token
        :version (or (:api-version query-params) "3.0")
@@ -65,11 +64,9 @@
       (merge (or (first query-params) {}))
       (dissoc :api-version :action-verb)))
 
-(defn- request [credentials action-verb &{:keys [] :as params}]
+(defn- request! [credentials action-verb &{:keys [] :as params}]
   (let [verb (name action-verb)]
-    (println ::request :params params)
     (let [new-params (prepare-params (assoc credentials :action-verb verb) params)]
-      (println ::request :new-params new-params)
       (-> (client/get url {:query-params new-params
                            :headers (prepare-headers (assoc credentials :action-verb verb))})
           :body))))
@@ -84,7 +81,7 @@
   The rest are optional query params. "
   [{:keys [api-token api-secret] :as credentials}]
   {:pre [(some? api-token) (some? api-secret)]}
-  (partial request credentials))
+  (partial request! credentials))
 
 ;; Example
 (comment
