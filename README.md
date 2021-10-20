@@ -9,6 +9,8 @@ First argument to `client` is the action-verb for Shareasale API. All keyword ar
 params to the request.
 
 ```clojure
+(require '[clj-shareasale.client :refer [make-client]])
+
 (def credentials {:api-token "token"
                   :api-secret "secret"
                   :merchant-id 12345})
