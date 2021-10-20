@@ -10,8 +10,8 @@ params to the request.
 
 ```clojure
 (def credentials {:api-token "token"
-                    :api-secret "secret"
-                    :merchant-id 12345})
+                  :api-secret "secret"
+                  :merchant-id 12345})
 (def client (make-client credentials))
 
 (client :transactiondetail :format "csv" :datestart "10/01/2021")
