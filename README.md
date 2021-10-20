@@ -7,7 +7,7 @@ Clojure client for Shareasale API.
 You can install the library via `deps.edn` (check the latest SHA on the repo):
 
 ```clojure
-io.github.blasterai/clj-shareasale {:git/sha "a2ce6bf2eb6b44d7df03c1fa7bf01001a271cf93"}
+io.github.blasterai/clj-shareasale {:git/sha "c5d3574900b67b9a20bb2f47b5e1e7756e264a90"}
 ```
 
 ## Usage
