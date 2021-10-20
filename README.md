@@ -4,7 +4,18 @@ Clojure client for Shareasale API.
 
 ## Usage
 
-FIXME: Write up usage docs
+Create a map with your credentials, then use it to generate a client function, which you can use to make requests.
+First argument to `client` is the action-verb for Shareasale API. All keyword arguments after that are added as query
+params to the request.
+
+```clojure
+(def credentials {:api-token "token"
+                    :api-secret "secret"
+                    :merchant-id 12345})
+(def client (make-client credentials))
+
+(client :transactiondetail :format "csv" :datestart "10/01/2021")
+```
 
 
 Invoke a library API function from the command-line:
