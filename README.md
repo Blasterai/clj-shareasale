@@ -2,6 +2,14 @@
 
 Clojure client for Shareasale API.
 
+## Install
+
+You can install the library via `deps.edn` (check the latest SHA on the repo):
+
+```clojure
+io.github.blasterai/clj-shareasale {:git/sha "a2ce6bf2eb6b44d7df03c1fa7bf01001a271cf93"}
+```
+
 ## Usage
 
 Create a map with your credentials, then use it to generate a client function, which you can use to make requests.
